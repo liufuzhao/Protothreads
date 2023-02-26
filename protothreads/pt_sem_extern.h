@@ -3,15 +3,15 @@
 #include "pt_port.h"
 #include "pt.h"
 
-#define PT_SEM_WAIT(pt, s, ms) \
-    __PT_TIME_ENABLE(                  \
-        pt, (s)->count > 0,            \
-        {                              \
-            if (!PT_IS_TIMEOUT(pt))   \
-            {                          \
-                --(s)->count;          \
-            }                          \
-        },                             \
+#define PT_SEM_WAIT(pt, s, ms)      \
+    __PT_TIME_ENABLE(               \
+        pt, (s)->count > 0,         \
+        {                           \
+            if (!PT_IS_TIMEOUT(pt)) \
+            {                       \
+                --(s)->count;       \
+            }                       \
+        },                          \
         (ms))
 
 #define PT_SEM_SIGNAL_ONCE(s)    \

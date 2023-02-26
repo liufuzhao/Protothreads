@@ -1,8 +1,9 @@
 #ifndef __PT_QUEUE_EXTERN_H
 #define __PT_QUEUE_EXTERN_H
-#include "pt_port.h"
 #include "pt.h"
+#include "pt_port.h"
 #include "pt_timers.h"
+
 
 typedef struct
 {
@@ -10,9 +11,8 @@ typedef struct
     volatile uint32_t read;      // 读
     volatile uint32_t write;     // 写
     volatile uint32_t itemSize;  // 每一个成员的大小
-    volatile uint32_t queueSize; //总队列大小
+    volatile uint32_t queueSize; // 总队列大小
 } pt_queue_t;
-
 
 #define PT_QUEUE_INIT(q, p, qS, iS)          \
     do                                       \
@@ -29,11 +29,10 @@ typedef struct
 
 #define _IS_READABLE(q) ((q)->write != (q)->read)
 
-
 #define PT_QUEUE_WRITE(q, item)                                    \
     do                                                             \
     {                                                              \
-        if (_IS_WRITEABLE(q))                                    \
+        if (_IS_WRITEABLE(q))                                      \
         {                                                          \
             memcpy(&(q)->addr[(q)->write], (item), (q)->itemSize); \
             (q)->write += (q)->itemSize;                           \
@@ -46,11 +45,10 @@ typedef struct
     }                                                              \
     while (0)
 
-
 #define PT_QUEUE_READ(q, item)                                    \
     do                                                            \
     {                                                             \
-        if (_IS_READABLE(q))                                    \
+        if (_IS_READABLE(q))                                      \
         {                                                         \
             memcpy((item), &(q)->addr[(q)->read], (q)->itemSize); \
             (q)->read += (q)->itemSize;                           \
@@ -64,9 +62,7 @@ typedef struct
 
 #define PT_QUEUE_HAS_DATA(q) _IS_READABLE(q)
 
-
 #define PT_QUEUE_WRITE_BLOCK(pt, q, item, ms) __PT_TIME_ENABLE(pt, _IS_WRITEABLE(q), PT_QUEUE_WRITE(q, item), (ms))
-
 
 #define PT_QUEUE_READ_BLOCK(pt, q, item, ms) __PT_TIME_ENABLE(pt, _IS_READABLE(q), PT_QUEUE_READ(q, item), (ms))
 

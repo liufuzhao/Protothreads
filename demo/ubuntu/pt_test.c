@@ -72,7 +72,7 @@ static PT_THREAD(box_general_thread(struct pt *pt))
         PT_SLEEP_MS(pt, 1000);
         snprintf(box_target, sizeof(box_target), "box_general_thread post box msg %d", cnt++);
         // 发送信息有一个,让出cpu 100
-        PT_BOX_SEND_YIELD(pt, &s_box, (void *)box_target,box_target, 100);
+        PT_BOX_SEND_YIELD(pt, &s_box, (void *)box_target, box_target, 100);
         if (PT_BOX_IS_HANDLER(&s_box))
         {
             LOG(" box is dispose by other \r\n");

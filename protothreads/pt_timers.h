@@ -4,8 +4,8 @@
  * 给pt 进行delay 拓展
  *
  */
-#ifndef __TIMER_H
-#define __TIMER_H
+#ifndef _PT_TIMER_H
+#define _PT_TIMER_H
 
 #include "pt.h"
 #include "pt_list.h"
@@ -21,22 +21,22 @@
 #define PT_WAIT_FOREVER 0xFFFFFFFFUL
 #define PT_NONBLOCK     0
 
-#define PT_SLEEP_MS(pt, ms)                                          \
+#define PT_SLEEP_MS(pt, ms)                                                \
     _pt_timer_start(&((container_of(pt, pt_thread_info, pt))->timer), ms); \
     PT_WAIT_UNTIL(pt, pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer)));
 
 #define PT_IS_TIMEOUT(pt) container_of(pt, pt_thread_info, pt)->status.time_out
 
-#define __PT_TIME_ENABLE(pt, condition, action, ms)                                                                 \
-    do                                                                                                              \
-    {                                                                                                               \
-        _pt_timer_start(&((container_of(pt, pt_thread_info, pt))->timer), ms);                                            \
-        __PT_YIELD_WAIT_UNTIL(pt, (pt_timer_first_run(&((container_of(pt, pt_thread_info, pt))->timer)) == PT_FALSE),  \
-                              ((condition) || pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer)))); \
-        container_of(pt, pt_thread_info, pt)->status.time_out =                                                     \
-            pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer));                                     \
-        action;                                                                                                     \
-    }                                                                                                               \
+#define __PT_TIME_ENABLE(pt, condition, action, ms)                                                                   \
+    do                                                                                                                \
+    {                                                                                                                 \
+        _pt_timer_start(&((container_of(pt, pt_thread_info, pt))->timer), ms);                                        \
+        __PT_YIELD_WAIT_UNTIL(pt, (pt_timer_first_run(&((container_of(pt, pt_thread_info, pt))->timer)) == PT_FALSE), \
+                              ((condition) || pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer))));   \
+        container_of(pt, pt_thread_info, pt)->status.time_out =                                                       \
+            pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer));                                       \
+        action;                                                                                                       \
+    }                                                                                                                 \
     while (0)
 
 typedef struct
@@ -70,4 +70,4 @@ int pt_timers_server_init(void);
 void *get_timers_server_thread(void);
 PT_THREAD(timers_server_thread(struct pt *pt));
 
-#endif // __TIMER_H
+#endif // _PT_TIMER_H

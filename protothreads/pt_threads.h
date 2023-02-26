@@ -111,8 +111,7 @@ typedef char (*pt_thread_t)(struct pt *);
     while (0)
 
 
-#define PT_WAIT_UNTIL_EX(pt, condition,ms) \
-        __PT_TIME_ENABLE(pt, condition, {}, ms)
+#define PT_WAIT_UNTIL_EX(pt, condition, ms) __PT_TIME_ENABLE(pt, condition, {}, ms)
 
 
 typedef struct

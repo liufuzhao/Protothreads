@@ -5,7 +5,7 @@
 
 #include "pt_threads.h"
 
-volatile uint32_t gu32_SystemCount;
+volatile uint32_t gu32_system_count;
 
 static pthread_t s_tick_task;
 static void tick_task(void *arg)
@@ -13,10 +13,9 @@ static void tick_task(void *arg)
     while (1)
     {
         usleep(1000 * 5);
-        gu32_SystemCount += 5;
+        gu32_system_count += 5;
     }
 }
-
 
 extern void register_test_threads(void);
 void main(int argc, char *argv[])
