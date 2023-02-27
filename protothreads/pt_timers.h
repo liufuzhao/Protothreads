@@ -27,7 +27,7 @@
 
 #define PT_IS_TIMEOUT(pt) container_of(pt, pt_thread_info, pt)->status.time_out
 
-#define __PT_TIME_ENABLE(pt, condition, action, ms)                                                                   \
+#define _PT_TIME_ENABLE(pt, condition, action, ms)                                                                    \
     do                                                                                                                \
     {                                                                                                                 \
         _pt_timer_start(&((container_of(pt, pt_thread_info, pt))->timer), ms);                                        \
@@ -39,15 +39,36 @@
     }                                                                                                                 \
     while (0)
 
+#define _PT_YIELD_ENABLE(pt, condition, action, uint8_t_cnt)                      \
+    do                                                                            \
+    {                                                                             \
+        container_of(pt, pt_thread_info, pt)->status.time_out = PT_TRUE;          \
+        container_of(pt, pt_thread_info, pt)->status.yield_cnt = uint8_t_cnt;     \
+        container_of(pt, pt_thread_info, pt)->status.yield_run_cnt = 0;           \
+        for (; container_of(pt, pt_thread_info, pt)->status.yield_run_cnt <=      \
+               container_of(pt, pt_thread_info, pt)->status.yield_cnt;            \
+             container_of(pt, pt_thread_info, pt)->status.yield_run_cnt++)        \
+        {                                                                         \
+            if (!condition)                                                       \
+                PT_YIELD(pt);                                                     \
+            else                                                                  \
+            {                                                                     \
+                container_of(pt, pt_thread_info, pt)->status.time_out = PT_FALSE; \
+                break;                                                            \
+            }                                                                     \
+        }                                                                         \
+        action;                                                                   \
+    }                                                                             \
+    while (0)
+
 typedef struct
 {
-    unsigned int status;
-    unsigned int start_tick;
-    unsigned int timeout_tick;
+    uint32_t status;
+    uint32_t start_tick;
+    uint32_t timeout_tick;
 } pt_timer_t;
 
-
-void _pt_timer_start(pt_timer_t *t, unsigned long timeout);
+void _pt_timer_start(pt_timer_t *t, uint32_t timeout);
 
 int pt_timer_timeout(pt_timer_t *t);
 
@@ -64,7 +85,7 @@ typedef struct
 int pt_timer_first_run(pt_timer_t *t);
 uint32_t timers_server_get_block_time_ms(void);
 int pt_timer_register(timer_extern_t *t, timers_callback_t cb);
-int pt_timer_start(pt_timer_t *t, unsigned long ms);
+int pt_timer_start(pt_timer_t *t, uint32_t ms);
 int pt_timer_stop(pt_timer_t *t);
 int pt_timers_server_init(void);
 void *get_timers_server_thread(void);

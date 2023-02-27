@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        ".clang-format": "yaml",
+        "pt_conditon_extern.h": "c",
+        "pt_port.h": "c",
+        "stdbool.h": "c",
+        "stdio.h": "c",
+        "type_traits": "c",
+        "pt.h": "c",
+        "pt_list.h": "c",
+        "string.h": "c",
+        "pt_box_extern.h": "c",
+        "pt_queue_extern.h": "c",
+        "pt_threads.h": "c",
+        "pt_simple_test.h": "c",
+        "hal.h": "c",
+        "tty_ctr.h": "c",
+        "typeinfo": "c",
+        "pt_broadcast_box_test.h": "c"
+    }
+}

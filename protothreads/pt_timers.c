@@ -5,7 +5,7 @@
 AOS_SLIST_HEAD(s_timers_head);
 static pt_thread_info s_timers_server_info;
 
-void _pt_timer_start(pt_timer_t *t, unsigned long timeout)
+void _pt_timer_start(pt_timer_t *t, uint32_t timeout)
 {
     t->start_tick = PT_GET_TICK();
     t->timeout_tick = timeout;
@@ -19,7 +19,7 @@ void _pt_timer_start(pt_timer_t *t, unsigned long timeout)
     }
 }
 
-int pt_timer_start(pt_timer_t *t, unsigned long ms)
+int pt_timer_start(pt_timer_t *t, uint32_t ms)
 {
     _pt_timer_start(t, ms);
     return 0;
@@ -88,7 +88,7 @@ PT_THREAD(timers_server_thread(struct pt *pt))
 {
     timer_extern_t *node = NULL;
     slist_t *tmp = NULL;
-    PT_BEGIN(pt);
+    PT_BEGIN_EX(pt);
     while (1)
     {
         slist_for_each_entry_safe(&s_timers_head, tmp, node, timer_extern_t, list)
@@ -101,7 +101,7 @@ PT_THREAD(timers_server_thread(struct pt *pt))
         }
         PT_YIELD(pt); // 执行完一次timer callback 让出cpu
     }
-    PT_END(pt);
+    PT_END_EX(pt);
 }
 
 uint32_t timers_server_get_block_time_ms(void)
@@ -144,7 +144,7 @@ uint32_t timers_server_get_block_time_ms(void)
 int pt_timers_server_init(void)
 {
     slist_init(&s_timers_head);
-    pt_thread_register(&s_timers_server_info, timers_server_thread);
+    pt_thread_register(&s_timers_server_info, timers_server_thread,"timers_server_thread");
     return 0;
 }
 

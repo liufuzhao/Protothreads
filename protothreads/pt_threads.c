@@ -2,7 +2,7 @@
 #include "pt_threads.h"
 #include "pt_list.h"
 
-#define PT_VERSION "0.1.00"
+#define PT_VERSION "0.2.00"
 AOS_SLIST_HEAD(threads_head);
 
 static uint32_t __pt_thread_get_block_time_ms(pt_thread_info *pti)
@@ -64,10 +64,31 @@ uint32_t pt_thread_get_block_time_ms(pt_thread_info *pti)
     return min_times;
 }
 
-void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt)
+
+void pt_threads_pre_run(pt_thread_info *pti)
+{
+#if PT_BOX_FUNC_ENABLE
+    extern void pt_boxs_auto_handled(struct pt * pt);
+    pt_thread_info *node = NULL;
+    slist_t *tmp_node = NULL;
+    slist_for_each_entry_safe(&pti->sub_head, tmp_node, node, pt_thread_info, list)
+    {
+        if (node)
+        {
+            pt_boxs_auto_handled(&(node->pt));
+        }
+    }
+    return;
+#endif
+}
+
+void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_name)
 {
     pti->pt_thread = ptt;
     pti->status.super = PT_TRUE;
+#if PT_MONITOR_FUNC_ENABLE
+    pti->pt_name = pt_name;
+#endif
     PT_INIT(&pti->pt);
     slist_add(&pti->list, &threads_head);
 }
@@ -103,7 +124,7 @@ void pt_threads_init(void)
     slist_init(&threads_head);
     pt_timers_server_init();
     PT_LOG("Welcome to Protothreads \r\n");
-    PT_LOG("Built:\"%s\" ,Version :\"%s\" \r\n",__TIME__,PT_VERSION);
+    PT_LOG("Built:\"%s\" ,Version :\"%s\" \r\n", __TIME__, PT_VERSION);
 }
 
 void pt_thread_reset(pt_thread_info *pti)
@@ -143,6 +164,7 @@ uint32_t pt_threads_get_block_time_ms(void)
     return min_times;
 }
 
+
 int pt_threads_run(void)
 {
     pt_thread_info *node = NULL;
@@ -154,6 +176,7 @@ int pt_threads_run(void)
     {
         if (node && node->pt_thread)
         {
+            pt_threads_pre_run(node);
             status = node->pt_thread(&(node->pt));
             if (node != ignore)
             {

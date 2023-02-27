@@ -17,23 +17,6 @@
 
 typedef char (*pt_thread_t)(struct pt *);
 
-#define __PT_YIELD_CNT_ENABLE(pt, condition, uint8_t_cnt)                     \
-    do                                                                        \
-    {                                                                         \
-        container_of(pt, pt_thread_info, pt)->status.yield_cnt = uint8_t_cnt; \
-        container_of(pt, pt_thread_info, pt)->status.yield_run_cnt = 0;       \
-        for (; container_of(pt, pt_thread_info, pt)->status.yield_run_cnt <=  \
-               container_of(pt, pt_thread_info, pt)->status.yield_cnt;        \
-             container_of(pt, pt_thread_info, pt)->status.yield_run_cnt++)    \
-        {                                                                     \
-            if (!condition)                                                   \
-                PT_YIELD(pt);                                                 \
-            else                                                              \
-                break;                                                        \
-        }                                                                     \
-    }                                                                         \
-    while (0)
-
 // 区分yield和waiting
 #define __PT_YIELD_WAIT_UNTIL(pt, yield_condition, condition) \
     do                                                        \
@@ -49,30 +32,6 @@ typedef char (*pt_thread_t)(struct pt *);
         }                                                     \
     }                                                         \
     while (0)
-
-// 切换子线程，并且返回子线程的yield和waiting状态
-// #define PT_SPAWN_EX(pt, thread)                                                                           \
-//     do                                                                                                    \
-//     {                                                                                                     \
-//         pt_thread_info *pt_info = container_of(pt, pt_thread_info, pt);                                   \
-//         if (!slist_empty(pt_info->sub_head))                                                              \
-//         {                                                                                                 \
-//             int __PT_STR_CONNECT2(ret, __LINE__);                                                         \
-//             pt_thread_info *sub_pt_info = slist_first_entry(pt_info->sub_head, pt_thread_info, sub_head); \
-//             PT_INIT((sub_pt_info->pt));                                                                   \
-//             LC_SET((pt)->lc);                                                                             \
-//             ret = thread;                                                                                 \
-//             if (PT_YIELDED == ret)                                                                        \
-//             {                                                                                             \
-//                 return PT_YIELDED;                                                                        \
-//             }                                                                                             \
-//             else if (PT_WAITING == ret)                                                                   \
-//             {                                                                                             \
-//                 return PT_WAITING;                                                                        \
-//             }                                                                                             \
-//         }                                                                                                 \
-//     }                                                                                                     \
-//     while (0)
 
 // 关联线程,切换子线程，并且返回子线程的yield和waiting状态
 #define PT_SPAWN_EX(pt, child, thread)                                                                                       \
@@ -111,8 +70,11 @@ typedef char (*pt_thread_t)(struct pt *);
     while (0)
 
 
-#define PT_WAIT_UNTIL_EX(pt, condition, ms) __PT_TIME_ENABLE(pt, condition, {}, ms)
+#define PT_WAIT_UNTIL_EX(pt, condition, ms) _PT_TIME_ENABLE(pt, condition, {}, ms)
 
+#define PT_BEGIN_EX(pt) PT_BEGIN(pt)
+#define PT_END_EX(pt)   PT_END(pt)
+#define PT_EXIT_EX(pt)  PT_EXIT(pt)
 
 typedef struct
 {
@@ -121,13 +83,16 @@ typedef struct
     uint32_t yield_cnt     : 8;
     uint32_t yield_run_cnt : 8;
     uint32_t super         : 2;
-    uint32_t no_use        : 10;
+    uint32_t no_use        : 10; // 变成monitor 用于监控
 } pt_thread_status;
 
 
 typedef struct
 {
     slist_t list;
+#if PT_MONITOR_FUNC_ENABLE
+    const uint8_t *pt_name;
+#endif
     struct pt pt;
     slist_t sub_head; // 子线程的
     pt_thread_t pt_thread;
@@ -135,7 +100,8 @@ typedef struct
     pt_timer_t timer;
 } pt_thread_info;
 
-void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt);
+// 非协程可用
+void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_name);
 void pt_thread_unregister(pt_thread_info *pti);
 void pt_thread_register_runing(pt_thread_info *pti, pt_thread_t ptt);
 int pt_thread_is_register(pt_thread_info *pti);
