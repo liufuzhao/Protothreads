@@ -7,8 +7,8 @@
 
 // 广播邮箱的使用方式
 // 支持多个线程往里send 和receive
-#define serial_send_hal(data, len) uart_send(data, len)
-#define serial_recevie_hal(data)   uart_receive_char(data)
+#define serial_send_hal(data, len) serial_send(data, len)
+#define serial_recevie_hal(data)   serial_receive_char(data)
 
 // 广播邮箱
 static pt_box_t s_broadcast_box;
@@ -77,7 +77,7 @@ static PT_THREAD(_serial_rx_thread(struct pt *pt))
     PT_BEGIN_EX(pt);
     while (1)
     {
-        PT_WAIT_UNTIL_EX(pt, uart_receive_char(&data), PT_WAIT_FOREVER);
+        PT_WAIT_UNTIL_EX(pt, serial_receive_char(&data), PT_WAIT_FOREVER);
         frame = parse_frame(data, PT_FALSE);
         if (frame)
         {

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 #include <pthread.h>
 #include <stdint.h>
 
@@ -75,7 +76,7 @@ PT_THREAD(pt_test_thread_2(struct pt *pt))
     filter.cb = pt_2_box_filter;
     frame.send.head.head = 0X5a;
     frame.send.head.cmd = 0x01;
-    uart_send("hello", strlen("hello") + 1);
+    serial_send("hello", strlen("hello") + 1);
     while (1)
     {
         frame.send.head.cmd++;
@@ -116,15 +117,21 @@ void test_broadcast_box_init()
     pt_thread_register(&test_2, pt_test_thread_2, "pt_test_thread_2");
 }
 
+void sig_int(int signo)
+{
+    serial_deinit();
+    exit(0);
+}
 void main(int argc, char *argv[])
 {
     // new a system tick thread in ubuntu
-    uart_init();
+    serial_init();
     pthread_create(&s_tick_task, NULL, (void *)tick_task, NULL);
     pthread_detach(s_tick_task);
-
+    signal(SIGINT, sig_int);
     pt_threads_init();
     test_broadcast_box_init();
+
     // register_test_threads();
     while (1)
     {

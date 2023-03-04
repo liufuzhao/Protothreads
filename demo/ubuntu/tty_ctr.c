@@ -18,17 +18,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include "pt_port.h"
 
-#define DEF_BAUD  115200
-#define BUF_SIZE  128
+
+#define DEF_BAUD 115200
+#define BUF_SIZE 128
 
 static pthread_t s_tty_task_tid;
 
-char buffer[BUF_SIZE];
+static int s_speed_arr[] = {B9600, B19200, B38400, B57600, B115200};
 
-int speed_arr[] = {B9600, B19200, B38400, B57600, B115200};
-
-int name_arr[] = {9600, 19200, 38400, 57600, 115200};
+static int s_name_arr[] = {9600, 19200, 38400, 57600, 115200};
 
 /**
  *@brief  设置串口通信速率
@@ -44,14 +44,14 @@ static int set_speed(int fd, int speed)
 
     tcgetattr(fd, &opt);
 
-    for (i = 0; i < sizeof(speed_arr)/sizeof(int); i++)
+    for (i = 0; i < sizeof(s_speed_arr) / sizeof(int); i++)
     {
-        if (speed == name_arr[i])
+        if (speed == s_name_arr[i])
         {
             tcflush(fd, TCIOFLUSH);
             /*  设置串口的波特率 */
-            cfsetispeed(&opt, speed_arr[i]);
-            cfsetospeed(&opt, speed_arr[i]);
+            cfsetispeed(&opt, s_speed_arr[i]);
+            cfsetospeed(&opt, s_speed_arr[i]);
             status = tcsetattr(fd, TCSANOW, &opt);
 
             if (status != 0)
@@ -203,7 +203,7 @@ int tty_init(char *device_path)
     if (-1 == fd)
     {
         printf("Cannot open %s:%s\n", dev, strerror(errno));
-        // exit(1);
+        return PT_FALSE;
     }
 
     /* 3、初始化设备 */
@@ -211,14 +211,14 @@ int tty_init(char *device_path)
     {
         printf("Cannot set baudrate to 115200\n");
         close(fd);
-        exit(1);
+         return PT_FALSE;
     }
 
     if (-1 == set_parity(fd, 8, 1, 'N'))
     {
         printf("Set Parity Error\n");
         close(fd);
-        exit(1);
+         return PT_FALSE;
     }
 
     return fd;
@@ -228,9 +228,9 @@ int tty_get_char(int fd, uint8_t *data)
 {
     if (read(fd, data, 1) == 1)
     {
-        return 1;
+         return PT_TRUE;
     }
-    return 0;
+     return PT_FALSE;;
 }
 
 void tty_send(int fd, char *msg, int msg_len)
