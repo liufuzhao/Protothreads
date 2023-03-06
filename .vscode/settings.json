@@ -16,6 +16,7 @@
         "hal.h": "c",
         "tty_ctr.h": "c",
         "typeinfo": "c",
-        "pt_broadcast_box_test.h": "c"
+        "pt_broadcast_box_test.h": "c",
+        "pt_monitor.h": "c"
     }
 }

@@ -7,6 +7,7 @@
 #include "pt_threads.h"
 #include "pt_simple_test.h"
 #include "pt_broadcast_box_test.h"
+#include "pt_monitor.h"
 
 volatile uint32_t gu32_system_count;
 static pthread_t s_tick_task;
@@ -50,8 +51,8 @@ PT_THREAD(pt_test_thread_1(struct pt *pt))
         frame.send.head.cmd++;
         frame.send.head.len = 10;
         frame.send.head.sum = 0;
-        frame.resend_time_100ms = 30; // 3秒
-        frame.resend_cnt = 3;         // 重发3次
+        frame.resend_time_100ms = 10; // 3秒
+        frame.resend_cnt = 1;         // 重发3次
 
         filter.para = frame.send.head.cmd;
         PT_SPAWN_EX(pt, &sub_thread.pt, stat = pt_serial_send_thread(&sub_thread.pt, &frame, &filter));
@@ -108,6 +109,7 @@ void test_broadcast_box_init()
     }
     pt_thread_reset(&test_1);
     pt_thread_register(&test_1, pt_test_thread_1, "pt_test_thread_1");
+    pt_monitor_enable(&test_1.pt,PT_TRUE);
 
     if (pt_thread_is_register(&test_2))
     {
@@ -115,6 +117,7 @@ void test_broadcast_box_init()
     }
     pt_thread_reset(&test_2);
     pt_thread_register(&test_2, pt_test_thread_2, "pt_test_thread_2");
+    pt_monitor_enable(&test_2.pt,PT_TRUE);
 }
 
 void sig_int(int signo)

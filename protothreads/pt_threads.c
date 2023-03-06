@@ -82,12 +82,12 @@ void pt_threads_pre_run(pt_thread_info *pti)
 #endif
 }
 
-void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_name)
+void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_monitor)
 {
     pti->pt_thread = ptt;
     pti->status.super = PT_TRUE;
 #if PT_MONITOR_FUNC_ENABLE
-    pti->pt_name = pt_name;
+    pti->pt_monitor = pt_monitor;
 #endif
     PT_INIT(&pti->pt);
     slist_add(&pti->list, &threads_head);
@@ -178,6 +178,9 @@ int pt_threads_run(void)
         {
             pt_threads_pre_run(node);
             status = node->pt_thread(&(node->pt));
+#if PT_MONITOR_FUNC_ENABLE
+            pt_monitor(&(node->pt));
+#endif
             if (node != ignore)
             {
                 if (status == PT_YIELDED)

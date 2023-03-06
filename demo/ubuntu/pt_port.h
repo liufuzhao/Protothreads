@@ -19,17 +19,19 @@ extern volatile uint32_t gu32_system_count;
 
 #define WAKE_UP_PT_THREAD_SEM()
 
-#define PT_LOG_HEX(data, len)                                                           \
-    do                                                                                  \
-    {                                                                                   \
-        struct timeval tv;                                                              \
-        gettimeofday(&tv, NULL);                                                        \
+#define PT_LOG_HEX(data, len)                                                    \
+    do                                                                           \
+    {                                                                            \
+        struct timeval tv;                                                       \
+        gettimeofday(&tv, NULL);                                                 \
         printf("[%ld][%04d]", (tv.tv_sec * 1000 + tv.tv_usec / 1000), __LINE__); \
-        for (uint16_t i = 0; i < (len); i++)                                              \
-            printf("%02x", (data)[i]);                                                    \
-        printf("\r\n");                                                                 \
-    }                                                                                   \
+        for (uint16_t i = 0; i < (len); i++)                                     \
+            printf("%02x", (data)[i]);                                           \
+        printf("\r\n");                                                          \
+    }                                                                            \
     while (0)
+
+#define PT_LOG_RAW(format, ...) printf(format, ##__VA_ARGS__)
 
 #define PT_LOG(format, ...)                                                                            \
     do                                                                                                 \

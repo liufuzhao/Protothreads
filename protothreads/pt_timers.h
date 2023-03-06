@@ -18,7 +18,8 @@
 #define PT_TIME_PRE_FOREVER_STATE 5
 #define PT_TIME_FOREVER_STATE     6
 
-#define PT_WAIT_FOREVER 0xFFFFFFFFUL
+// 预留4个bit用作状态处理
+#define PT_WAIT_FOREVER 0x0FFFFFFFUL 
 #define PT_NONBLOCK     0
 
 #define PT_SLEEP_MS(pt, ms)                                                \
@@ -31,6 +32,7 @@
     do                                                                                                                \
     {                                                                                                                 \
         _pt_timer_start(&((container_of(pt, pt_thread_info, pt))->timer), ms);                                        \
+        container_of(pt, pt_thread_info, pt)->status.monitor_view = PT_TRUE;                                          \
         __PT_YIELD_WAIT_UNTIL(pt, (pt_timer_first_run(&((container_of(pt, pt_thread_info, pt))->timer)) == PT_FALSE), \
                               ((condition) || pt_timer_timeout(&((container_of(pt, pt_thread_info, pt))->timer))));   \
         container_of(pt, pt_thread_info, pt)->status.time_out =                                                       \
@@ -45,6 +47,7 @@
         container_of(pt, pt_thread_info, pt)->status.time_out = PT_TRUE;          \
         container_of(pt, pt_thread_info, pt)->status.yield_cnt = uint8_t_cnt;     \
         container_of(pt, pt_thread_info, pt)->status.yield_run_cnt = 0;           \
+        container_of(pt, pt_thread_info, pt)->status.monitor_view = PT_TRUE;      \
         for (; container_of(pt, pt_thread_info, pt)->status.yield_run_cnt <=      \
                container_of(pt, pt_thread_info, pt)->status.yield_cnt;            \
              container_of(pt, pt_thread_info, pt)->status.yield_run_cnt++)        \
@@ -63,9 +66,9 @@
 
 typedef struct
 {
-    uint32_t status;
+    uint32_t status:4;
+    uint32_t timeout_tick:28;
     uint32_t start_tick;
-    uint32_t timeout_tick;
 } pt_timer_t;
 
 void _pt_timer_start(pt_timer_t *t, uint32_t timeout);

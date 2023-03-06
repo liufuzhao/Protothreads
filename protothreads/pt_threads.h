@@ -10,6 +10,9 @@
 #include "pt.h"
 #include "pt_list.h"
 #include "pt_timers.h"
+#if PT_MONITOR_FUNC_ENABLE
+#include "pt_monitor.h"
+#endif
 
 #define __PT_STR_CONNECT2(__0, __1) __0##__1
 
@@ -33,6 +36,22 @@ typedef char (*pt_thread_t)(struct pt *);
     }                                                         \
     while (0)
 
+#define PT_WAIT_UNTIL_EX(pt, condition, ms) _PT_TIME_ENABLE(pt, condition, {}, ms)
+
+#ifndef PT_BEGIN_EX
+#define PT_BEGIN_EX(pt) PT_BEGIN(pt)
+#endif
+#ifndef PT_END_EX
+#define PT_END_EX(pt) PT_END(pt)
+#endif
+#ifndef PT_EXIT_EX
+#define PT_EXIT_EX(pt) PT_EXIT(pt)
+#endif
+
+#ifndef PT_MONITOR
+#define PT_MONITOR(pt)
+#endif
+
 // 关联线程,切换子线程，并且返回子线程的yield和waiting状态
 #define PT_SPAWN_EX(pt, child, thread)                                                                                       \
     do                                                                                                                       \
@@ -46,7 +65,10 @@ typedef char (*pt_thread_t)(struct pt *);
         {                                                                                                                    \
             slist_add_tail(&(container_of(child, pt_thread_info, pt)->list), &(container_of(pt, pt_thread_info, pt)->list)); \
         }                                                                                                                    \
+        container_of(child, pt_thread_info, pt)->status.monitor_enbale =                                                     \
+            container_of(pt, pt_thread_info, pt)->status.monitor_enbale;                                                     \
         int __PT_STR_CONNECT2(ret, __LINE__);                                                                                \
+        container_of(pt, pt_thread_info, pt)->status.monitor_view = PT_TRUE;                                                 \
         PT_INIT((child));                                                                                                    \
         LC_SET((pt)->lc);                                                                                                    \
         __PT_STR_CONNECT2(ret, __LINE__) = thread;                                                                           \
@@ -70,20 +92,17 @@ typedef char (*pt_thread_t)(struct pt *);
     while (0)
 
 
-#define PT_WAIT_UNTIL_EX(pt, condition, ms) _PT_TIME_ENABLE(pt, condition, {}, ms)
-
-#define PT_BEGIN_EX(pt) PT_BEGIN(pt)
-#define PT_END_EX(pt)   PT_END(pt)
-#define PT_EXIT_EX(pt)  PT_EXIT(pt)
-
 typedef struct
 {
-    uint32_t idle          : 2;
-    uint32_t time_out      : 2;
-    uint32_t yield_cnt     : 8;
-    uint32_t yield_run_cnt : 8;
-    uint32_t super         : 2;
-    uint32_t no_use        : 10; // 变成monitor 用于监控
+    uint32_t begin          : 1;
+    uint32_t idle           : 1;
+    uint32_t time_out       : 1;
+    uint32_t super          : 1;
+    uint32_t yield_cnt      : 8;
+    uint32_t yield_run_cnt  : 8;
+    uint32_t monitor_enbale : 1;
+    uint32_t monitor_view   : 1;
+    uint32_t no_use         : 10; // 变成monitor 用于监控
 } pt_thread_status;
 
 
@@ -91,7 +110,7 @@ typedef struct
 {
     slist_t list;
 #if PT_MONITOR_FUNC_ENABLE
-    const uint8_t *pt_name;
+    const uint8_t *pt_monitor;
 #endif
     struct pt pt;
     slist_t sub_head; // 子线程的
@@ -101,7 +120,7 @@ typedef struct
 } pt_thread_info;
 
 // 非协程可用
-void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_name);
+void pt_thread_register(pt_thread_info *pti, pt_thread_t ptt, const uint8_t *pt_monitor);
 void pt_thread_unregister(pt_thread_info *pti);
 void pt_thread_register_runing(pt_thread_info *pti, pt_thread_t ptt);
 int pt_thread_is_register(pt_thread_info *pti);
