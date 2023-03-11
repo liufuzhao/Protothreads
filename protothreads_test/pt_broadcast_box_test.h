@@ -13,13 +13,13 @@ typedef struct
     uint8_t cmd;
     uint8_t sum;
     uint8_t len;
-    uint8_t data[];
+    uint8_t data[1];
 } protocol_t;
 
 typedef union
 {
     protocol_t head;
-    uint8_t data[255];
+    uint8_t data[128];
 } base_frame_t;
 
 typedef struct
@@ -36,7 +36,7 @@ typedef struct
     receive_frame_t *receive;
 } send_frame_t;
 
-#pragma pack(0)
+#pragma pack()
 
 typedef int (*pt_serial_receive_cb)(receive_frame_t *frame);
 

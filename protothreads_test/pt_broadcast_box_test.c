@@ -81,7 +81,7 @@ static PT_THREAD(_serial_rx_thread(struct pt *pt))
         frame = parse_frame(data, PT_FALSE);
         if (frame)
         {
-            PT_BOX_SEND_YIELD(pt, &s_broadcast_box, frame->receive.head.cmd, frame, 100);
+            PT_BOX_SEND_YIELD(pt, &s_broadcast_box, (void *)frame->receive.head.cmd, frame, 100);
             if (PT_IS_TIMEOUT(pt))
             {
                 LOG("box is not accept by other \r\n");
@@ -122,7 +122,7 @@ PT_THREAD(pt_serial_send_thread(struct pt *pt, send_frame_t *frame, pt_box_filte
         }
         else
         {
-            pt_box_get_msg(&s_broadcast_box, &frame->receive);
+            pt_box_get_msg(&s_broadcast_box, (void **)&frame->receive);
             frame->receive->dispose = PT_TRUE;
             LOG("receive ack \r\n");
             break;

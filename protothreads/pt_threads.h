@@ -10,9 +10,8 @@
 #include "pt.h"
 #include "pt_list.h"
 #include "pt_timers.h"
-#if PT_MONITOR_FUNC_ENABLE
 #include "pt_monitor.h"
-#endif
+
 
 #define __PT_STR_CONNECT2(__0, __1) __0##__1
 

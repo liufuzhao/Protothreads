@@ -2,7 +2,7 @@
 #include "pt_threads.h"
 #include "pt_monitor.h"
 
-
+#if PT_MONITOR_FUNC_ENABLE
 void _pt_monitor(pt_thread_info *pti)
 {
 
@@ -79,3 +79,8 @@ void pt_monitor_review(struct pt *pt)
     pt_thread_info *pti = container_of(pt, pt_thread_info, pt);
     _pt_monitor(pti);
 }
+#else
+void pt_monitor_enable(struct pt *pt, uint8_t flg)
+{
+}
+#endif
